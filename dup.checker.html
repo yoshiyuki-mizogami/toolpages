@@ -48,7 +48,11 @@
     ev.preventDefault()
     ev.stopPropagation()
     console.log(ev.dataTransfer.files)
-    parseFiles(Array.from(ev.dataTransfer.files))
+    try{
+      parseFiles(Array.from(ev.dataTransfer.files))
+    }catch(e){
+      alert('ファイルの種別が不正')
+    }
   })
   async function parseFiles(orgFiles){
     let messages = []
@@ -64,7 +68,6 @@
     }))
     let all = []
     files.forEach((file)=>{
-      console.log(file)
       const lines = file.split(/\r?\n/).filter(Boolean)
       lines.splice(0,1)
       all = all.concat(lines)
@@ -75,7 +78,7 @@
     let before = ''
     all.forEach(line=>{
       if(before === line){
-        resultset.add(line.split(',')[3].replace(/["=]/g, ''))
+        resultset.add((line.split(',')[3] || '').replace(/["=]/g, ''))
       }
       before = line
     })
