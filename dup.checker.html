@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>確定値重複チェック</title>
+  <style>
+    html,body,.content{
+      margin:0;
+      padding:0;
+      height:100vh;
+      width:100vw;
+      box-sizing:border-box;
+    }
+    .content{
+      width:600px;
+      margin:auto;
+    }
+    .messages{
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <div class="content">
+    確定値ファイルを画面にドロップしてください。
+    <div class="messages">
+
+    </div>
+  </div>  
+</body>
+<script>
+  const content = document.querySelector('.content')
+  content.addEventListener('dragenter',ev=>{
+    ev.preventDefault()
+    ev.stopPropagation()
+  })
+  content.addEventListener('dragleave',ev=>{
+    ev.preventDefault()
+    ev.stopPropagation()
+  })
+  content.addEventListener('dragover',ev=>{
+    ev.preventDefault()
+    ev.stopPropagation()
+  })
+  content.addEventListener('drop',ev=>{
+    ev.preventDefault()
+    ev.stopPropagation()
+    console.log(ev.dataTransfer.files)
+    parseFiles(Array.from(ev.dataTransfer.files))
+  })
+  async function parseFiles(orgFiles){
+    let messages = []
+    const files = await Promise.all(orgFiles.map((file)=>{
+      return new Promise(resolve=>{
+        const fl = new FileReader()
+        fl.readAsText(file)
+        fl.addEventListener('load', ev=>{
+          const txt = fl.result
+          resolve(txt)
+        })
+      })
+    }))
+    let all = []
+    files.forEach((file)=>{
+      console.log(file)
+      const lines = file.split(/\r?\n/).filter(Boolean)
+      lines.splice(0,1)
+      all = all.concat(lines)
+    })
+    messages.push(`全部で${all.length}行`)
+    all.sort()
+    const resultset = new Set()
+    let before = ''
+    all.forEach(line=>{
+      if(before === line){
+        resultset.add(line.split(',')[3].replace(/["=]/g, ''))
+      }
+      before = line
+    })
+    const resultArray = Array.from(resultset)
+    if(resultArray.length !== 0){
+      messages.push(`${resultArray.length}件の重複を検知しました`)
+      messages = messages.concat(resultArray)
+    }else{
+      messages.push('重複はありませんんでした')
+    }
+    document.querySelector('.messages').textContent = messages.join('\n')
+  }
+
+</script>
+</html>
